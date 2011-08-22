@@ -1,0 +1,50 @@
+diff -Nru rsyslog-4.6.2.orig/doc/rsyslog_conf_global.html rsyslog-4.6.2/doc/rsyslog_conf_global.html
+--- rsyslog-4.6.2.orig/doc/rsyslog_conf_global.html	2010-05-19 15:13:40.000000000 +0200
++++ rsyslog-4.6.2/doc/rsyslog_conf_global.html	2010-05-19 15:23:03.000000000 +0200
+@@ -219,7 +219,7 @@
+ of the output file. The higher the number, the better the compression, but also the
+ more CPU is required for zipping.</li>
+ <li><b>$OMFileIOBufferSize</b> &lt;size_nbr&gt;, default 4k, size of the buffer used to writing output data. The larger the buffer, the potentially better performance is. The default of 4k is quite conservative, it is useful to go up to 64k, and 128K if you used gzip compression (then, even higher sizes may make sense)</li>
+-<li><b>$OMFileFlushOnTXEnd</b> &lt;[on/<b>off</b>]&gt;, default ff. Omfile has the
++<li><b>$OMFileFlushOnTXEnd</b> &lt;[<b>on</b>/off]&gt;, default on. Omfile has the
+ capability to
+ write output using a buffered writer. Disk writes are only done when the buffer is
+ full. So if an error happens during that write, data is potentially lost. In cases where
+@@ -227,7 +227,7 @@
+ of each transaction (for pre-v5 this means after <b>each</b> log message) and the usual
+ error recovery thus can handle write errors without data loss. Note that this option
+ severely reduces the effect of zip compression and should be switched to off
+-for that use case. Note that the default -off- is primarily an aid to preserve
++for that use case. Note that the default -on- is primarily an aid to preserve
+ the traditional syslogd behaviour.</li>
+ <li><b>$RepeatedMsgContainsOriginalMsg</b> [on/<b>off</b>] - "last message repeated n times" messages, if generated,
+ have a different format that contains the message that is being repeated.
+diff -Nru rsyslog-4.6.2.orig/tools/omfile.c rsyslog-4.6.2/tools/omfile.c
+--- rsyslog-4.6.2.orig/tools/omfile.c	2010-05-19 15:13:40.000000000 +0200
++++ rsyslog-4.6.2/tools/omfile.c	2010-05-19 15:17:32.000000000 +0200
+@@ -87,6 +87,7 @@
+ #define IOBUF_DFLT_SIZE 1024	/* default size for io buffers */
+ #define FLUSH_INTRVL_DFLT 1 	/* default buffer flush interval (in seconds) */
+ #define USE_ASYNCWRITER_DFLT 0 	/* default buffer use async writer */
++#define FLUSHONTX_DFLT 1 	/* default for flush on TX end */
+ 
+ /* globals for default values */
+ static int iDynaFileCacheSize = 10; /* max cache for dynamic files */
+@@ -100,7 +101,7 @@
+ static int	bCreateDirs = 1;/* auto-create directories for dynaFiles: 0 - no, 1 - yes */
+ static int	bEnableSync = 0;/* enable syncing of files (no dash in front of pathname in conf): 0 - no, 1 - yes */
+ static int	iZipLevel = 0;	/* zip compression mode (0..9 as usual) */
+-static bool	bFlushOnTXEnd = 0;/* flush write buffers when transaction has ended? */
++static bool	bFlushOnTXEnd = FLUSHONTX_DFLT;/* flush write buffers when transaction has ended? */
+ static int64	iIOBufSize = IOBUF_DFLT_SIZE;	/* size of an io buffer */
+ static int	iFlushInterval = FLUSH_INTRVL_DFLT; 	/* how often flush the output buffer on inactivity? */
+ static int	bUseAsyncWriter = USE_ASYNCWRITER_DFLT;	/* should we enable asynchronous writing? */
+@@ -764,7 +765,7 @@
+ 	bCreateDirs = 1;
+ 	bEnableSync = 0;
+ 	iZipLevel = 0;
+-	bFlushOnTXEnd = 0;
++	bFlushOnTXEnd = FLUSHONTX_DFLT;
+ 	iIOBufSize = IOBUF_DFLT_SIZE;
+ 	iFlushInterval = FLUSH_INTRVL_DFLT;
+ 	bUseAsyncWriter = USE_ASYNCWRITER_DFLT;

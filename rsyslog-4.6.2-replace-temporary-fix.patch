@@ -1,0 +1,72 @@
+diff -Nru rsyslog-4.6.2.orig/runtime/msg.c rsyslog-4.6.2/runtime/msg.c
+--- rsyslog-4.6.2.orig/runtime/msg.c	2010-05-19 15:23:16.000000000 +0200
++++ rsyslog-4.6.2/runtime/msg.c	2010-05-19 15:50:47.000000000 +0200
+@@ -2010,6 +2010,8 @@
+ 
+ 
+ /* set raw message in message object. Size of message is provided.
++ * The function makes sure that the stored rawmsg is properly
++ * terminated by '\0'.
+  * rgerhards, 2009-06-16
+  */
+ void MsgSetRawMsg(msg_t *pThis, char* pszRawMsg, size_t lenMsg)
+@@ -2319,13 +2321,6 @@
+ 			*pPropLen = sizeof("**INVALID PROPERTY NAME**") - 1;
+ 			return UCHAR_CONSTANT("**INVALID PROPERTY NAME**");
+ 	}
+-	/* the following line fixes the symptom, but not the root cause -- at least MSG sometimes
+-	* returns a size of one too less. To prevent all troubles, we recalculate the sizes based
+-	* on what we actually got. TODO: remove once root cause is found.
+-	* rgerhards, 2010-03-23
+-	*/
+-	bufLen = ustrlen(pRes);
+-
+ 
+ 	/* If we did not receive a template pointer, we are already done... */
+ 	if(pTpe == NULL) {
+diff -Nru rsyslog-4.6.2.orig/runtime/parser.c rsyslog-4.6.2/runtime/parser.c
+--- rsyslog-4.6.2.orig/runtime/parser.c	2010-05-19 15:23:16.000000000 +0200
++++ rsyslog-4.6.2/runtime/parser.c	2010-05-19 15:50:47.000000000 +0200
+@@ -176,7 +176,10 @@
+ 	pszMsg = pMsg->pszRawMsg;
+ 	lenMsg = pMsg->iLenRawMsg;
+ 
+-	/* remove NUL character at end of message (see comment in function header) */
++	/* remove NUL character at end of message (see comment in function header)
++	 * Note that we do not need to add a NUL character in this case, because it
++	 * is already present ;)
++	 */
+ 	if(pszMsg[lenMsg-1] == '\0') {
+ 		DBGPRINTF("dropped NUL at very end of message\n");
+ 		bUpdatedLen = TRUE;
+@@ -190,8 +193,9 @@
+ 	 */
+ 	if(bDropTrailingLF && pszMsg[lenMsg-1] == '\n') {
+ 		DBGPRINTF("dropped LF at very end of message (DropTrailingLF is set)\n");
+-		bUpdatedLen = TRUE;
+ 		lenMsg--;
++		pszMsg[lenMsg] = '\0';
++		bUpdatedLen = TRUE;
+ 	}
+ 
+ 	/* it is much quicker to sweep over the message and see if it actually
+@@ -245,6 +249,7 @@
+ 		}
+ 		++iSrc;
+ 	}
++	pDst[iDst] = '\0';
+ 
+ 	MsgSetRawMsg(pMsg, (char*)pDst, iDst); /* save sanitized string */
+ 
+diff -Nru rsyslog-4.6.2.orig/tools/syslogd.c rsyslog-4.6.2/tools/syslogd.c
+--- rsyslog-4.6.2.orig/tools/syslogd.c	2010-05-19 15:23:16.000000000 +0200
++++ rsyslog-4.6.2/tools/syslogd.c	2010-05-19 15:50:47.000000000 +0200
+@@ -792,7 +792,7 @@
+ 				 * (I couldn't do any more smart things anyway...).
+ 				 * rgerhards, 2007-9-20
+ 				 */
+-				DBGPRINTF("internal error: iMsg > max msg size in printchopped()\n");
++				DBGPRINTF("internal error: iMsg > max msg size in parseAndSubmitMessage()\n");
+ 			}
+ 			FINALIZE; /* in this case, we are done... nothing left we can do */
+ 		}

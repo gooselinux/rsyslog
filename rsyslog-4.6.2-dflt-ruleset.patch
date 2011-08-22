@@ -1,0 +1,11 @@
+diff -up rsyslog-4.6.2/runtime/ruleset.c.orig rsyslog-4.6.2/runtime/ruleset.c
+--- rsyslog-4.6.2/runtime/ruleset.c.orig	2010-06-08 14:37:16.373200529 +0200
++++ rsyslog-4.6.2/runtime/ruleset.c	2010-06-08 14:38:08.437202314 +0200
+@@ -348,6 +348,7 @@ destructAllActions(void)
+ 
+ 	CHKiRet(llDestroy(&llRulesets));
+ 	CHKiRet(llInit(&llRulesets, rulesetDestructForLinkedList, keyDestruct, strcasecmp));
++	pDfltRuleset = NULL;
+ 
+ finalize_it:
+ 	RETiRet;

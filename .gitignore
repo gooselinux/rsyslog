@@ -1,0 +1,5 @@
+rsyslog.log
+rsyslog.sysconfig
+rsyslog.conf
+rsyslog.init
+rsyslog-4.6.2.tar.gz

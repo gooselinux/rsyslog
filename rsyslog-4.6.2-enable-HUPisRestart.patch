@@ -1,0 +1,21 @@
+diff -Nru rsyslog-4.6.2.orig/runtime/glbl.c rsyslog-4.6.2/runtime/glbl.c
+--- rsyslog-4.6.2.orig/runtime/glbl.c	2010-05-19 15:17:32.000000000 +0200
++++ rsyslog-4.6.2/runtime/glbl.c	2010-05-19 15:24:31.000000000 +0200
+@@ -55,7 +55,7 @@
+  */
+ static uchar *pszWorkDir = NULL;
+ static int bOptimizeUniProc = 1;	/* enable uniprocessor optimizations */
+-static int bHUPisRestart = 0;		/* should SIGHUP cause a full system restart? */
++static int bHUPisRestart = 1;		/* should SIGHUP cause a full system restart? */
+ static int bPreserveFQDN = 0;		/* should FQDNs always be preserved? */
+ static int iMaxLine = 2048;		/* maximum length of a syslog message */
+ static int iDefPFFamily = PF_UNSPEC;     /* protocol family (IPv4, IPv6 or both) */
+@@ -302,7 +302,7 @@
+ 	}
+ 	bDropMalPTRMsgs = 0;
+ 	bOptimizeUniProc = 1;
+-	bHUPisRestart = 0;
++	bHUPisRestart = 1;
+ 	bPreserveFQDN = 0;
+ #ifdef USE_UNLIMITED_SELECT
+ 	iFdSetSize = howmany(FD_SETSIZE, __NFDBITS) * sizeof (fd_mask);
